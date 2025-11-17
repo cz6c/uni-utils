@@ -249,7 +249,9 @@ onUnmounted(() => {
 
       <view class="flex items-center justify-between mb-4">
         <view class="section-title">历史记录</view>
-        <wd-button size="small" class="mx-0" @click="openModal(null)">添加记录</wd-button>
+        <view>
+          <wd-button size="small" @click="openModal(null)">添加记录</wd-button>
+        </view>
       </view>
       <view class="records-section">
         <view v-if="loading" class="loading-section">
@@ -289,9 +291,11 @@ onUnmounted(() => {
       <view class="modal-content" @click.stop>
         <view class="flex items-center justify-between">
           <view class="modal-title">{{ formData.id ? '编辑记录' : '添加记录' }}</view>
-          <wd-button size="small" class="mx-0" :disabled="saving" @click="saveRecord">
-            {{ saving ? '保存中...' : '保存' }}
-          </wd-button>
+          <view>
+            <wd-button size="small" :disabled="saving" @click="saveRecord">
+              {{ saving ? '保存中...' : '保存' }}
+            </wd-button>
+          </view>
         </view>
 
         <wd-form ref="form2" :model="formData">
