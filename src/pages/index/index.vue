@@ -10,376 +10,187 @@
 <template>
   <!-- :style="{ marginTop: safeAreaInsets?.top + height + 'px' }" -->
   <view class="bg-#f5f5f5 overflow-hidden">
-    <wd-sticky>
-      <view class="header-view w-screen">
-        <div :style="{ height: top + 'px' }"></div>
-        <view class="nav-box center" :style="{ height: height + 'px' }">
-          <div
-            v-for="({ label, value }, i) in tabs"
-            :key="i"
-            :class="`tab ${value === tab ? 'on' : ''}`"
-            @click="changeTab(value)"
-          >
-            {{ label }}
-          </div>
-        </view>
-        <view class="search-box">
-          <div class="keyword">圣诞积木</div>
-          <div class="search mr-1">
-            <i class="custom-icon custom-icon-search"></i>
-          </div>
-        </view>
-      </view>
-    </wd-sticky>
-    <view class="px-3 pb-3">
-      <!-- banner -->
-      <wd-swiper
-        :list="swiperList"
-        value-key="img"
-        autoplay
-        v-model:current="current"
-        :height="127"
-        @click="handleClick"
-        @change="onChange"
-      ></wd-swiper>
-      <!-- 金刚区 -->
-      <view class="classification mt-2.5 py-5 bg-#ffffff border-rd-4" v-if="jinGangArr.length > 0">
-        <swiper
-          class="h-17 box-border"
-          :autoplay="false"
-          :display-multiple-items="5"
-          @change="changeSwiper"
-        >
-          <swiper-item v-for="(item, i) in jinGangArr" :key="i">
-            <view class="center flex-col">
-              <BaseImage :src="item.img" width="72rpx" height="72rpx" />
-              <view class="className ellipsis">{{ item.coreName }}</view>
-            </view>
-          </swiper-item>
-        </swiper>
-        <view class="slide" v-if="jinGangArr.length > 5">
-          <view class="slide-bar">
-            <view class="slide-show" :style="{ marginLeft: `${slideLeft}rpx` }"></view>
-          </view>
-        </view>
-      </view>
-      <!-- 行业新品 -->
-      <view class="new_product products_card mt-2.5 h-40">
-        <view class="dt">
-          <view>行业新品</view>
-          <view class="new">海量最新产品</view>
-        </view>
-        <view class="list">
-          <view v-for="(item, i) in newProductList" :key="i">
-            <view class="center flex-col">
-              <BaseImage :src="item.imageUrl" width="192rpx" height="162rpx" />
-              <view class="mt-1 text-3.25 font-700 color-#f51e12">
-                ￥{{ item.price && item.price.toFixed(2) }}
-              </view>
-            </view>
-          </view>
-        </view>
-      </view>
-      <!-- 行业热销 -->
-      <view class="flex mt-2.5 h-33">
-        <view class="hot_product products_card">
-          <view class="dt">行业热销</view>
-          <view class="list" v-if="hotProductList.length">
-            <view v-for="(item, i) in hotProductList" :key="i">
-              <view class="center flex-col">
-                <BaseImage :src="item.imageUrl" width="135rpx" height="114rpx" />
-                <view class="mt-1 text-3.25 font-700 color-#f51e12">
-                  ￥{{ item.price && item.price.toFixed(2) }}
-                </view>
-              </view>
-            </view>
-          </view>
-        </view>
-        <view class="ds_product products_card">
-          <view style="width: 100%; height: 100%" v-if="firstProductList[0]">
-            <view class="dt">{{ firstProductList[0].prefredName.substr(0, 4) }}</view>
-            <view v-for="(item, i) in firstProductList" :key="i">
-              <view class="center flex-col">
-                <BaseImage :src="item.imageUrl" width="135rpx" height="114rpx" />
-                <view class="mt-1 text-3.25 font-700 color-#f51e12">
-                  ￥{{ item.price && item.price.toFixed(2) }}
-                </view>
-              </view>
-            </view>
-          </view>
-        </view>
-        <view class="cr_product products_card">
-          <view style="width: 100%; height: 100%" v-if="secondProductList[0]">
-            <view class="dt">{{ secondProductList[0].prefredName.substr(0, 4) }}</view>
-            <view v-for="(item, i) in secondProductList" :key="i">
-              <view class="center flex-col">
-                <BaseImage :src="item.imageUrl" width="135rpx" height="114rpx" />
-                <view class="mt-1 text-3.25 font-700 color-#f51e12">
-                  ￥{{ item.price && item.price.toFixed(2) }}
-                </view>
-              </view>
-            </view>
-          </view>
-        </view>
-      </view>
-      <!-- 展厅产地 -->
-      <view class="hall_org mt-2.5 pb-2.5" v-if="hallList.length > 0">
-        <view class="hall pt-2.5">
-          <view class="dt">
-            <view>澄海玩具展厅</view>
-          </view>
-          <view class="hall_swiper">
-            <swiper class="swiper" :autoplay="true" :circular="true">
-              <swiper-item v-for="(arr, i) in hallList" :key="i">
-                <view class="halls">
-                  <view class="item halls-item">
-                    <template v-if="arr[0]">
-                      <BaseImage
-                        :src="arr[0] && arr[0].img"
-                        width="214rpx"
-                        height="202rpx"
-                        radius="12rpx"
-                      />
-                      <view class="name ellipsis">
-                        {{ arr[0] && (arr[0].adTitle || arr[0].companyName) }}
-                      </view>
-                    </template>
-                  </view>
-                  <view class="item halls-item">
-                    <template v-if="arr[1]">
-                      <BaseImage
-                        :src="arr[1] && arr[1].img"
-                        width="214rpx"
-                        height="202rpx"
-                        radius="12rpx"
-                      />
-                      <view class="name ellipsis">
-                        {{ arr[1] && (arr[1].adTitle || arr[1].companyName) }}
-                      </view>
-                    </template>
-                  </view>
-                  <view class="items">
-                    <view class="item halls-item">
-                      <template v-if="arr[2]">
-                        <BaseImage
-                          :src="arr[2] && arr[2].img"
-                          width="212rpx"
-                          height="94rpx"
-                          radius="12rpx"
-                        />
-                        <view class="name ellipsis">
-                          {{ arr[2] && (arr[2].adTitle || arr[2].companyName) }}
-                        </view>
-                      </template>
-                    </view>
-                    <view class="item halls-item">
-                      <template v-if="arr[3]">
-                        <BaseImage
-                          :src="arr[3] && arr[3].img"
-                          width="212rpx"
-                          height="94rpx"
-                          radius="12rpx"
-                        />
-                        <view class="name ellipsis">
-                          {{ arr[3] && (arr[3].adTitle || arr[3].companyName) }}
-                        </view>
-                      </template>
-                    </view>
-                  </view>
-                </view>
-              </swiper-item>
-            </swiper>
-          </view>
-        </view>
-        <view class="org pt-2.5">
-          <view class="dt">
-            <view>全国产地</view>
-          </view>
-          <view class="org_swiper">
-            <swiper class="swiper" :autoplay="true" :circular="true" :display-multiple-items="3">
-              <swiper-item v-for="(item, i) in orgList" :key="i">
-                <view class="item org-item">
-                  <BaseImage
-                    :src="item.areaImage"
-                    width="100%"
-                    height="106rpx"
-                    radius="12rpx"
-                    fit="aspectFill"
+    <div class="page-container">
+      <div class="container">
+        <h1 class="page-title">食物嘌呤识别</h1>
+
+        <div class="upload-section card">
+          <div v-if="!imagePreview" class="upload-area">
+            <wd-upload
+              ref="fileInput"
+              accept="image"
+              :file-list="fileList"
+              action="https://mockapi.eolink.com/zhTuw2P8c29bc981a741931bdd86eb04dc1e8fd64865cb5/upload"
+              @change="handleChange"
+            >
+              <wd-button>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect
+                    x="3"
+                    y="3"
+                    width="18"
+                    height="18"
+                    rx="2"
+                    ry="2"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
                   />
-                  <view class="name ellipsis">{{ item.title }}</view>
-                </view>
-              </swiper-item>
-            </swiper>
-          </view>
-        </view>
-      </view>
-    </view>
+                  <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+                  <polyline
+                    points="21 15 16 10 5 21"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                上传图片
+              </wd-button>
+            </wd-upload>
+          </div>
+
+          <div v-else class="preview-area">
+            <img :src="imagePreview" alt="Preview" class="preview-image" />
+            <wd-button @click="clearImage" class="btn btn-secondary btn-full">重新选择</wd-button>
+            <wd-button @click="analyzeImage" class="btn btn-primary btn-full" :disabled="analyzing">
+              {{ analyzing ? '识别中...' : '开始识别' }}
+            </wd-button>
+          </div>
+        </div>
+
+        <div v-if="analyzing" class="loading-section">
+          <div class="loading-spinner"></div>
+          <p>AI正在识别食物...</p>
+        </div>
+
+        <div v-if="error" class="error-section card">
+          <p class="error-message">{{ error }}</p>
+        </div>
+
+        <div v-if="result" class="result-section">
+          <div class="card result-card">
+            <h2 class="result-title">识别结果</h2>
+            <div class="result-food">
+              <h3>{{ result.foodName }}</h3>
+              <span class="badge" :class="`badge-${result.level}`">
+                {{
+                  result.level === 'high'
+                    ? '高嘌呤'
+                    : result.level === 'medium'
+                      ? '中嘌呤'
+                      : '低嘌呤'
+                }}
+              </span>
+            </div>
+
+            <div class="result-detail">
+              <div class="detail-item">
+                <span class="detail-label">嘌呤含量</span>
+                <span class="detail-value">{{ result.purine }} mg/100g</span>
+              </div>
+            </div>
+
+            <div class="result-advice">
+              <h4>饮食建议</h4>
+              <p>{{ result.advice }}</p>
+            </div>
+
+            <div
+              v-if="result.alternatives && result.alternatives.length > 0"
+              class="result-alternatives"
+            >
+              <h4>替代食物推荐</h4>
+              <div class="alternatives-list">
+                <span v-for="alt in result.alternatives" :key="alt" class="alternative-tag">
+                  {{ alt }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </view>
 </template>
 
 <script lang="ts" setup>
 import { TestEnum } from '@/typings'
-import {
-  GetAdvertisementList,
-  NewProductList,
-  SaleHotProductList,
-  PrefreProductList,
-  GetProductionAreaList,
-} from '@/service/api1'
-import { GetCoreAreaList } from '@/service/api2'
-import BaseImage from '@/components/BaseImage/index.vue'
-import { generateCombinations } from '@/utils/arr'
 
 defineOptions({
   name: 'Home',
 })
 
 // 获取屏幕边界到安全区域距离
-const { safeAreaInsets } = uni.getSystemInfoSync()
+// const { safeAreaInsets } = uni.getSystemInfoSync()
 // 获取胶囊按钮
-const { height, top } = uni.getMenuButtonBoundingClientRect()
-const tabs = [
+// const { height, top } = uni.getMenuButtonBoundingClientRect()
+
+const fileInput = ref<HTMLInputElement | null>(null)
+const imagePreview = ref<string | null>(null)
+const analyzing = ref(false)
+const error = ref<string | null>(null)
+const result = ref<any>(null)
+
+const fileList = ref<any[]>([
   {
-    label: '找产品',
-    value: 1,
+    url: 'https://img12.360buyimg.com//n0/jfs/t1/29118/6/4823/55969/5c35c16bE7c262192/c9fdecec4b419355.jpg',
   },
-  {
-    label: '找厂商',
-    value: 2,
-  },
-]
-const tab = ref(1)
-function changeTab(val) {
-  tab.value = val
+])
+
+function handleChange({ fileList }) {
+  fileList.value = fileList
 }
 
-const current = ref<number>(0)
-const { data: swiperList } = useRequest(
-  () =>
-    GetAdvertisementList({
-      adPosition: 76,
-      adType: 0,
-      platform: 'WeChat',
-      roleName: 'Sales',
-    }),
-  {
-    immediate: true,
-    initialData: [],
-    dataFn: (res) => res.advertisementList,
-    successCall: (data) => {
-      console.log('🚀 ~ const{loading,data,run}=useRequest ~ data:', data)
-    },
-  },
-)
-function handleClick(e) {
-  console.log(e)
-}
-function onChange(e) {
-  console.log(e)
+const clearImage = () => {
+  imagePreview.value = null
+  result.value = null
+  error.value = null
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
 }
 
-const slideLeft = ref(0)
-const { data: jinGangArr } = useRequest(
-  () =>
-    GetCoreAreaList({
-      coreAreaType: 9,
-      adapt: 'app',
-    }),
-  {
-    immediate: true,
-    initialData: [],
-  },
-)
-function changeSwiper(e) {
-  console.log('🚀 ~ changeSwiper ~ e:', e)
-  // 当前的激活索引
-  const length = jinGangArr.value.length
-  const redundant = length - 5 // 多余的滑块
-  const slideRatio = 22 / redundant
-  slideLeft.value = slideRatio * e.detail.current
+const analyzeImage = async () => {
+  if (!imagePreview.value) return
+
+  analyzing.value = true
+  error.value = null
+  result.value = null
+
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    const mockResults = [
+      {
+        foodName: '牛肉',
+        purine: 83,
+        level: 'medium',
+        advice: '中等嘌呤食物，痛风患者可适量食用，建议每次不超过50克，且避免在急性发作期食用。',
+        alternatives: ['鸡胸肉', '豆腐', '鸡蛋'],
+      },
+      {
+        foodName: '西兰花',
+        purine: 70,
+        level: 'medium',
+        advice: '中等嘌呤食物，富含维生素C和膳食纤维，对痛风患者有益，可以适量食用。',
+        alternatives: [],
+      },
+      {
+        foodName: '苹果',
+        purine: 14,
+        level: 'low',
+        advice: '低嘌呤食物，富含维生素和膳食纤维，痛风患者可以放心食用。',
+        alternatives: [],
+      },
+    ]
+
+    result.value = mockResults[Math.floor(Math.random() * mockResults.length)]
+  } catch (err) {
+    error.value = '识别失败，请重试'
+  } finally {
+    analyzing.value = false
+  }
 }
-
-const { data: newProductList } = useRequest(
-  () =>
-    NewProductList({
-      maxCount: 3,
-    }),
-  {
-    immediate: true,
-    initialData: [],
-  },
-)
-const { data: hotProductList } = useRequest(
-  () =>
-    SaleHotProductList({
-      maxCount: 2,
-    }),
-  {
-    immediate: true,
-    initialData: [],
-  },
-)
-const { data: firstProductList } = useRequest(
-  () =>
-    PrefreProductList({
-      type: 0,
-    }),
-  {
-    immediate: true,
-    initialData: [],
-  },
-)
-const { data: secondProductList } = useRequest(
-  () =>
-    PrefreProductList({
-      type: 1,
-    }),
-  {
-    immediate: true,
-    initialData: [],
-  },
-)
-
-const hallList = computed(() => generateCombinations(bHallList.value, 2, mHallList.value, 2))
-const { data: bHallList } = useRequest(
-  () =>
-    GetAdvertisementList({
-      adPosition: 99,
-      adType: 0,
-      platform: 'WeChat',
-      roleName: 'Sales',
-    }),
-  {
-    immediate: true,
-    initialData: [],
-    dataFn: (res) => res.advertisementList,
-  },
-)
-const { data: mHallList } = useRequest(
-  () =>
-    GetAdvertisementList({
-      adPosition: 100,
-      adType: 0,
-      platform: 'WeChat',
-      roleName: 'Sales',
-    }),
-  {
-    immediate: true,
-    initialData: [],
-    dataFn: (res) => res.advertisementList,
-  },
-)
-
-const { data: orgList } = useRequest(
-  () =>
-    GetProductionAreaList({
-      areaType: 1,
-    }),
-  {
-    immediate: true,
-    initialData: [],
-  },
-)
 
 // 测试 uni API 自动引入
 onLoad(() => {
@@ -387,225 +198,143 @@ onLoad(() => {
 })
 </script>
 
-<style lang="scss">
-.main-title-color {
-  color: #d14328;
+<style lang="scss" scoped>
+.page-title {
+  margin: 24px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
 }
 
-.header-view {
-  padding-bottom: 12 * 2rpx;
-  background: linear-gradient(180deg, #daeafd, #f6f6f6);
+.upload-section {
+  margin-bottom: 24px;
+}
 
-  .nav-box {
-    .tab {
-      font-size: 16px;
-      font-weight: 700;
-      color: #333333;
+.upload-area,
+.preview-area {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-      & ~ .tab {
-        margin-left: 20px;
-      }
+.btn-full {
+  width: 100%;
+}
 
-      &.on {
-        font-size: 21px;
-        font-weight: 800;
-        color: #222222;
-      }
-    }
-  }
+.preview-image {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 12px;
+}
 
-  .search-box {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 38 * 2rpx;
-    margin: 12 * 2rpx 12 * 2rpx 0;
-    background: #ffffff;
-    border: 1px solid #148bec;
-    border-radius: 20 * 2rpx;
+.loading-section {
+  padding: 32px 0;
+  text-align: center;
+}
 
-    .keyword {
-      margin-left: 16px;
-      font-size: 14px;
-      font-weight: 400;
-      color: #999999;
-    }
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  border: 4px solid #c8c7cc;
+  border-top-color: #4cd964;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
 
-    .search {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 82rpx;
-      height: 62rpx;
-      font-size: 28rpx;
-      color: #ffffff;
-      background: #148bec;
-      border-radius: 32rpx;
-    }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-.classification {
-  .className {
-    width: 100%;
-    margin-top: 20rpx;
-    font-size: 24rpx;
-    color: #333;
-    text-align: center;
-  }
-  .slide {
-    height: 4rpx;
-    margin-top: 10rpx;
-    .slide-bar {
-      width: 44rpx;
-      height: 4rpx;
-      margin: 0 auto;
-      background: #dedede;
-      border-radius: 2rpx;
-      .slide-show {
-        width: 22rpx;
-        height: 4rpx;
-        background: #999999;
-        border-radius: 2rpx;
-        transition: margin-left 0.1s ease;
-      }
-    }
-  }
+.error-section {
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
 }
 
-.products_card {
-  box-sizing: border-box;
-  padding: 20rpx;
-  background-color: #fff;
-  border-radius: 15rpx;
-
-  .dt {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding-bottom: 20rpx;
-    overflow: hidden;
-    font-size: 30rpx;
-    font-weight: 700;
-    color: #333333;
-    text-overflow: ellipsis;
-    white-space: ellipsis;
-
-    .new {
-      box-sizing: border-box;
-      width: 76 * 2rpx;
-      height: 19 * 2rpx;
-      padding: 4rpx 10rpx;
-      margin-left: 20rpx;
-      font-size: 22rpx;
-      font-weight: 400;
-      color: #ffffff;
-      background: #f63a38;
-      border-radius: 16rpx 8rpx 8rpx 4rpx;
-    }
-  }
-
-  .list {
-    display: flex;
-    justify-content: space-between;
-  }
+.error-message {
+  font-weight: 500;
+  color: #dc2626;
 }
 
-.new_product {
-  background: linear-gradient(180deg, #ffeded, #ffffff 16%);
+.result-card {
+  margin-bottom: 24px;
 }
 
-.hot_product {
-  width: 168 * 2rpx;
-  height: 100%;
-  margin-right: 20rpx;
+.result-title {
+  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
 }
 
-.ds_product {
-  width: 83 * 2rpx;
-  height: 100%;
-  margin-right: 20rpx;
+.result-food {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #c8c7cc;
 }
 
-.cr_product {
-  width: 83 * 2rpx;
-  height: 100%;
+.result-food h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
 }
 
-.hall_org {
-  background: #ffffff;
-  border-radius: 15rpx;
+.result-detail {
+  margin-bottom: 24px;
+}
 
-  .dt {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20rpx;
-    padding-top: 0;
-    font-size: 32rpx;
-    font-weight: 700;
-    color: #333333;
-  }
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 0;
+}
 
-  .item {
-    position: relative;
+.detail-label {
+  color: #6b7280;
+}
 
-    .name {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      box-sizing: border-box;
-      width: 100%;
-      padding-bottom: 14rpx;
-      padding-left: 14rpx;
-      font-size: 24rpx;
-      font-weight: 400;
-      color: #ffffff;
-      text-shadow: 0px 0px 20rpx 0px #000000;
-    }
-  }
+.detail-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
 
-  .hall_swiper {
-    height: 202rpx;
-    padding: 0 16rpx;
+.result-advice,
+.result-alternatives {
+  margin-top: 24px;
+}
 
-    .halls {
-      display: flex;
+.result-advice h4,
+.result-alternatives h4 {
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
 
-      .halls-item {
-        width: 214rpx;
+.result-advice p {
+  line-height: 1.6;
+  color: #6b7280;
+}
 
-        & + .halls-item {
-          margin-left: 16rpx;
-        }
-      }
+.alternatives-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 
-      .items {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        height: 202rpx;
-        margin-left: 16rpx;
-
-        .halls-item {
-          margin-left: 0rpx;
-        }
-      }
-    }
-  }
-
-  .org_swiper {
-    height: 106rpx;
-    padding: 0 8rpx;
-
-    .swiper {
-      height: 100%;
-
-      .org-item {
-        box-sizing: border-box;
-        padding: 0 8rpx;
-      }
-    }
-  }
+.alternative-tag {
+  padding: 6px 12px;
+  font-size: 14px;
+  color: #1f2937;
+  background-color: #f9fafb;
+  border: 1px solid #c8c7cc;
+  border-radius: 20px;
 }
 </style>

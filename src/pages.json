@@ -30,6 +30,12 @@
         "text": "首页"
       },
       {
+        "iconPath": "static/tabbar/example.png",
+        "selectedIconPath": "static/tabbar/exampleHL.png",
+        "pagePath": "pages/foods/index",
+        "text": "食物"
+      },
+      {
         "iconPath": "static/tabbar/personal.png",
         "selectedIconPath": "static/tabbar/personalHL.png",
         "pagePath": "pages/my/index",
@@ -47,12 +53,11 @@
       }
     },
     {
-      "path": "pages/login/login",
+      "path": "pages/foods/index",
       "type": "page",
       "style": {
-        "navigationBarTitleText": "登录"
-      },
-      "layout": false
+        "navigationBarTitleText": "食物"
+      }
     },
     {
       "path": "pages/my/index",

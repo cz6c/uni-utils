@@ -1,7 +1,6 @@
 /* eslint-disable no-param-reassign */
 import qs from 'qs'
 import { getEnvBaseUrl } from '@/utils'
-import { GetTM } from './crypto'
 
 export type CustomRequestOptions = UniApp.RequestOptions & {
   query?: Record<string, any>
@@ -50,7 +49,6 @@ const httpInterceptor = {
     options.timeout = 10000 // 10s
     // 2. （可选）添加小程序端请求头标识
     options.header = {
-      IsHome: 1,
       PlatForm: 'wechatApplets',
       VersionNo: systemInfo.system,
       browserVersion: systemInfo.model,
@@ -61,8 +59,7 @@ const httpInterceptor = {
     // 3. 添加 token 请求头标识    加入鉴权串
     const token = options.Utoken
     if (token) {
-      const tm = GetTM()
-      options.header.Utoken = token + (tm ? '.' + tm : '')
+      options.header.Utoken = token
     }
   },
 }

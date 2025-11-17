@@ -1,13 +1,10 @@
 import { CustomRequestOptions } from '@/interceptors/request'
 import { RefreshToken } from '@/service/api2'
 import { useUserStore } from '@/store'
-import getSysteme from '@/interceptors/getSystem'
 
-// 401,419是否正在并发请求处理
+// 401是否正在并发请求处理
 let is401 = false
 let requestList401 = []
-let is419 = false
-let requestList419 = []
 let isNoteken = false
 let requestListNoteken = []
 
@@ -73,21 +70,6 @@ export const http = async <T>(options: CustomRequestOptions) => {
               }
             } else {
               requestList401.unshift(() => {
-                resolve(http(options))
-              })
-            }
-          } else if (data.code === 419) {
-            if (!is419) {
-              is419 = true
-              await getSysteme()
-              is419 = false
-              resolve(http(options))
-              requestList419.forEach((callback) => {
-                callback()
-              })
-              requestList419 = []
-            } else {
-              requestList419.unshift(() => {
                 resolve(http(options))
               })
             }
