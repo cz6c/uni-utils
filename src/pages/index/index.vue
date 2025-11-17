@@ -2,233 +2,193 @@
 <route lang="json5" type="home">
 {
   style: {
-    navigationStyle: 'custom',
+    // navigationStyle: 'custom',
     navigationBarTitleText: '首页',
   },
 }
 </route>
-<template>
-  <!-- :style="{ marginTop: safeAreaInsets?.top + height + 'px' }" -->
-  <view class="bg-#f5f5f5 overflow-hidden">
-    <div class="page-container">
-      <div class="container">
-        <h1 class="page-title">食物嘌呤识别</h1>
+<script setup lang="ts">
+import data from '@/static/data.json'
+import { Food } from '@/types/apis'
 
-        <div class="upload-section card">
-          <div v-if="!imagePreview" class="upload-area">
-            <wd-upload
-              ref="fileInput"
-              accept="image"
-              :file-list="fileList"
-              action="https://mockapi.eolink.com/zhTuw2P8c29bc981a741931bdd86eb04dc1e8fd64865cb5/upload"
-              @change="handleChange"
-            >
-              <wd-button>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <rect
-                    x="3"
-                    y="3"
-                    width="18"
-                    height="18"
-                    rx="2"
-                    ry="2"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
-                  <polyline
-                    points="21 15 16 10 5 21"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-                上传图片
-              </wd-button>
-            </wd-upload>
-          </div>
+const purineOptions = [
+  { value: '', label: '全部' },
+  ...Object.keys(data.purineLevels).map((k) => ({ value: k, label: data.purineLevels[k].title })),
+]
 
-          <div v-else class="preview-area">
-            <img :src="imagePreview" alt="Preview" class="preview-image" />
-            <wd-button @click="clearImage" class="btn btn-secondary btn-full">重新选择</wd-button>
-            <wd-button @click="analyzeImage" class="btn btn-primary btn-full" :disabled="analyzing">
-              {{ analyzing ? '识别中...' : '开始识别' }}
-            </wd-button>
-          </div>
-        </div>
+const categoryOptions = [
+  { value: '', label: '全部' },
+  ...data.categories.map((k) => ({ value: k, label: k })),
+]
 
-        <div v-if="analyzing" class="loading-section">
-          <div class="loading-spinner"></div>
-          <p>AI正在识别食物...</p>
-        </div>
+const selectedLevel = ref('')
+const selectedCategory = ref('')
+const foods = ref<Food[]>([])
+const loading = ref(true)
+const error = ref<string | null>(null)
+const selectedFoodDetail = ref<Food | null>(null)
 
-        <div v-if="error" class="error-section card">
-          <p class="error-message">{{ error }}</p>
-        </div>
-
-        <div v-if="result" class="result-section">
-          <div class="card result-card">
-            <h2 class="result-title">识别结果</h2>
-            <div class="result-food">
-              <h3>{{ result.foodName }}</h3>
-              <span class="badge" :class="`badge-${result.level}`">
-                {{
-                  result.level === 'high'
-                    ? '高嘌呤'
-                    : result.level === 'medium'
-                      ? '中嘌呤'
-                      : '低嘌呤'
-                }}
-              </span>
-            </div>
-
-            <div class="result-detail">
-              <div class="detail-item">
-                <span class="detail-label">嘌呤含量</span>
-                <span class="detail-value">{{ result.purine }} mg/100g</span>
-              </div>
-            </div>
-
-            <div class="result-advice">
-              <h4>饮食建议</h4>
-              <p>{{ result.advice }}</p>
-            </div>
-
-            <div
-              v-if="result.alternatives && result.alternatives.length > 0"
-              class="result-alternatives"
-            >
-              <h4>替代食物推荐</h4>
-              <div class="alternatives-list">
-                <span v-for="alt in result.alternatives" :key="alt" class="alternative-tag">
-                  {{ alt }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </view>
-</template>
-
-<script lang="ts" setup>
-import { TestEnum } from '@/typings'
-
-defineOptions({
-  name: 'Home',
+const filteredFoods = computed(() => {
+  return foods.value.filter((food) => {
+    const levelMatch = !selectedLevel.value || food.level === selectedLevel.value
+    const categoryMatch = !selectedCategory.value || food.category === selectedCategory.value
+    return levelMatch && categoryMatch
+  })
 })
 
-// 获取屏幕边界到安全区域距离
-// const { safeAreaInsets } = uni.getSystemInfoSync()
-// 获取胶囊按钮
-// const { height, top } = uni.getMenuButtonBoundingClientRect()
-
-const fileInput = ref<HTMLInputElement | null>(null)
-const imagePreview = ref<string | null>(null)
-const analyzing = ref(false)
-const error = ref<string | null>(null)
-const result = ref<any>(null)
-
-const fileList = ref<any[]>([
-  {
-    url: 'https://img12.360buyimg.com//n0/jfs/t1/29118/6/4823/55969/5c35c16bE7c262192/c9fdecec4b419355.jpg',
-  },
-])
-
-function handleChange({ fileList }) {
-  fileList.value = fileList
+const getLevelLabel = (level: string) => {
+  const option = purineOptions.find((opt) => opt.value === level)
+  return option?.label || level
 }
 
-const clearImage = () => {
-  imagePreview.value = null
-  result.value = null
-  error.value = null
-  if (fileInput.value) {
-    fileInput.value.value = ''
-  }
+const getCategoryLabel = (category: string) => {
+  const option = categoryOptions.find((opt) => opt.value === category)
+  return option?.label || category
 }
 
-const analyzeImage = async () => {
-  if (!imagePreview.value) return
+const selectFood = (food: Food) => {
+  selectedFoodDetail.value = food
+}
 
-  analyzing.value = true
-  error.value = null
-  result.value = null
+const closeModal = () => {
+  selectedFoodDetail.value = null
+}
 
+const loadFoods = async () => {
   try {
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    const mockResults = [
-      {
-        foodName: '牛肉',
-        purine: 83,
-        level: 'medium',
-        advice: '中等嘌呤食物，痛风患者可适量食用，建议每次不超过50克，且避免在急性发作期食用。',
-        alternatives: ['鸡胸肉', '豆腐', '鸡蛋'],
-      },
-      {
-        foodName: '西兰花',
-        purine: 70,
-        level: 'medium',
-        advice: '中等嘌呤食物，富含维生素C和膳食纤维，对痛风患者有益，可以适量食用。',
-        alternatives: [],
-      },
-      {
-        foodName: '苹果',
-        purine: 14,
-        level: 'low',
-        advice: '低嘌呤食物，富含维生素和膳食纤维，痛风患者可以放心食用。',
-        alternatives: [],
-      },
-    ]
-
-    result.value = mockResults[Math.floor(Math.random() * mockResults.length)]
-  } catch (err) {
-    error.value = '识别失败，请重试'
+    loading.value = true
+    error.value = null
+    foods.value = data.foods || []
+  } catch (err: any) {
+    error.value = err.message || '加载失败'
+    console.error('Error loading foods:', err)
   } finally {
-    analyzing.value = false
+    loading.value = false
   }
 }
 
-// 测试 uni API 自动引入
-onLoad(() => {
-  console.log(TestEnum.A)
+onMounted(() => {
+  loadFoods()
 })
 </script>
 
+<template>
+  <view class="page-container">
+    <view class="container">
+      <view class="page-title mb-4">食物数据库</view>
+
+      <view class="filter-section card mb-4">
+        <view class="filter-group">
+          <label class="filter-label">嘌呤含量</label>
+          <view class="filter-options">
+            <wd-radio-group v-model="selectedLevel" shape="button">
+              <wd-radio v-for="level in purineOptions" :key="level.value" :value="level.value">
+                {{ level.label }}
+              </wd-radio>
+            </wd-radio-group>
+          </view>
+        </view>
+
+        <view class="filter-group">
+          <label class="filter-label">食物类别</label>
+          <view class="filter-options">
+            <wd-radio-group v-model="selectedCategory" shape="button">
+              <wd-radio v-for="cat in categoryOptions" :key="cat.value" :value="cat.value">
+                {{ cat.label }}
+              </wd-radio>
+            </wd-radio-group>
+          </view>
+        </view>
+      </view>
+
+      <view v-if="loading" class="loading-section">
+        <view class="loading-spinner"></view>
+        <view>加载中...</view>
+      </view>
+
+      <view v-else-if="error" class="error-section card">
+        <view class="error-message">{{ error }}</view>
+      </view>
+
+      <view v-else-if="filteredFoods.length === 0" class="empty-section card">
+        <wd-status-tip image="content" tip="暂无数据" />
+      </view>
+
+      <view v-else class="foods-grid">
+        <view
+          v-for="food in filteredFoods"
+          :key="food.id"
+          class="food-card card"
+          @click="selectFood(food)"
+        >
+          <view class="food-header">
+            <view class="food-name">{{ food.name }}</view>
+            <text class="badge" :class="`badge-${food.level}`">
+              {{ getLevelLabel(food.level) }}
+            </text>
+          </view>
+          <view class="food-category">{{ getCategoryLabel(food.category) }}</view>
+          <view class="food-purine">
+            <text class="purine-value" :class="`value-${food.level}`">{{ food.purine }}</text>
+            <text class="purine-unit">mg/100g</text>
+          </view>
+          <view class="food-description">{{ food.description }}</view>
+        </view>
+      </view>
+    </view>
+
+    <view v-if="selectedFoodDetail" class="modal" @click="closeModal">
+      <view class="modal-content card" @click.stop>
+        <wd-button class="modal-close" type="icon" icon="close" @click="closeModal"></wd-button>
+        <view class="modal-title">{{ selectedFoodDetail.name }}</view>
+        <text class="badge" :class="`badge-${selectedFoodDetail.level}`">
+          {{ getLevelLabel(selectedFoodDetail.level) }}
+        </text>
+        <view class="modal-detail">
+          <view class="detail-row">
+            <text class="detail-label">类别</text>
+            <text class="detail-value">{{ getCategoryLabel(selectedFoodDetail.category) }}</text>
+          </view>
+          <view class="detail-row">
+            <text class="detail-label">嘌呤含量</text>
+            <text class="detail-value">{{ selectedFoodDetail.purine }} mg/100g</text>
+          </view>
+        </view>
+        <view class="modal-description">{{ selectedFoodDetail.description }}</view>
+      </view>
+    </view>
+  </view>
+</template>
+
 <style lang="scss" scoped>
 .page-title {
-  margin: 24px 0;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: #1f2937;
 }
 
-.upload-section {
-  margin-bottom: 24px;
+.filter-group {
+  margin-bottom: 16px;
 }
 
-.upload-area,
-.preview-area {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.filter-group:last-child {
+  margin-bottom: 0;
 }
 
-.btn-full {
-  width: 100%;
+.filter-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
 }
 
-.preview-image {
-  width: 100%;
-  max-height: 400px;
-  object-fit: cover;
-  border-radius: 12px;
+:deep() .wd-radio {
+  margin-bottom: 10px;
 }
 
-.loading-section {
+.loading-section,
+.empty-section {
   padding: 32px 0;
   text-align: center;
 }
@@ -259,40 +219,109 @@ onLoad(() => {
   color: #dc2626;
 }
 
-.result-card {
+.foods-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
   margin-bottom: 24px;
 }
 
-.result-title {
-  margin-bottom: 16px;
-  font-size: 20px;
-  font-weight: 600;
-  color: #1f2937;
+.food-card {
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.result-food {
+.food-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid #c8c7cc;
+  margin-bottom: 8px;
 }
 
-.result-food h3 {
-  font-size: 24px;
+.food-name {
+  font-size: 18px;
   font-weight: 600;
   color: #1f2937;
 }
 
-.result-detail {
-  margin-bottom: 24px;
+.food-category {
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #6b7280;
 }
 
-.detail-item {
+.food-purine {
+  margin: 16px 0;
+}
+
+.purine-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.purine-unit {
+  margin-left: 4px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.food-description {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 32px;
+  cursor: pointer;
+}
+
+.modal-title {
+  padding-right: 32px;
+  margin-bottom: 16px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.modal-detail {
+  margin: 24px 0;
+}
+
+.detail-row {
   display: flex;
   justify-content: space-between;
-  padding: 16px 0;
+  padding: 8px 0;
+  border-bottom: 1px solid #c8c7cc;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
 }
 
 .detail-label {
@@ -300,41 +329,12 @@ onLoad(() => {
 }
 
 .detail-value {
-  font-size: 18px;
   font-weight: 600;
   color: #1f2937;
 }
 
-.result-advice,
-.result-alternatives {
-  margin-top: 24px;
-}
-
-.result-advice h4,
-.result-alternatives h4 {
-  margin-bottom: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.result-advice p {
+.modal-description {
   line-height: 1.6;
   color: #6b7280;
-}
-
-.alternatives-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.alternative-tag {
-  padding: 6px 12px;
-  font-size: 14px;
-  color: #1f2937;
-  background-color: #f9fafb;
-  border: 1px solid #c8c7cc;
-  border-radius: 20px;
 }
 </style>

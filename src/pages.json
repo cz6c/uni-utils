@@ -42,15 +42,7 @@
       "path": "pages/index/index",
       "type": "home",
       "style": {
-        "navigationStyle": "custom",
         "navigationBarTitleText": "首页"
-      }
-    },
-    {
-      "path": "pages/foods/index",
-      "type": "page",
-      "style": {
-        "navigationBarTitleText": "食物"
       }
     },
     {

@@ -8,15 +8,12 @@
 
 <template>
   <view class="bg-white overflow-hidden px-3">
-    <!-- 数据请求 -->
-    <RequestComp />
     <!-- 文件上传 -->
     <UploadComp />
   </view>
 </template>
 
 <script lang="ts" setup>
-import RequestComp from './components/request.vue'
 import UploadComp from './components/upload.vue'
 </script>
 

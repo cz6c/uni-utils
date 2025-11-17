@@ -228,39 +228,41 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="page-container">
-    <div class="container">
+  <view class="page-container">
+    <view class="container">
       <view class="section-title mb-4">尿酸水平</view>
-      <div class="stats-section">
-        <div class="stat-card card" v-for="item in statsTips" :key="item.key">
-          <div class="stat-label">{{ item.label }}</div>
-          <div class="stat-value">{{ stats[item.key] }}</div>
-          <div class="stat-unit">μmol/L</div>
-        </div>
-      </div>
+      <view class="stats-section">
+        <view class="stat-card card" v-for="item in statsTips" :key="item.key">
+          <view class="stat-label">{{ item.label }}</view>
+          <view class="stat-value">{{ stats[item.key] }}</view>
+          <view class="stat-unit">μmol/L</view>
+        </view>
+      </view>
 
       <view class="section-title mb-4">尿酸趋势</view>
-      <div class="mb-4 card">
+      <view class="mb-4 card">
         <canvas ref="chartCanvas"></canvas>
-        <p v-if="records.length === 0" class="empty-message">暂无数据，请添加记录</p>
-      </div>
+        <view v-if="records.length === 0" class="empty-message">
+          <wd-status-tip image="content" tip="暂无数据，请添加记录" />
+        </view>
+      </view>
 
-      <div class="flex items-center justify-between mb-4">
+      <view class="flex items-center justify-between mb-4">
         <view class="section-title">历史记录</view>
         <wd-button size="small" class="mx-0" @click="openModal(null)">添加记录</wd-button>
-      </div>
-      <div class="records-section">
-        <div v-if="loading" class="loading-section">
-          <div class="loading-spinner"></div>
-        </div>
-        <div v-else-if="records.length === 0" class="empty-section card">
-          <p>暂无记录</p>
-        </div>
-        <div v-else class="records-list">
-          <div v-for="record in records" :key="record.id" class="record-item card">
-            <div class="record-header">
-              <div class="record-date">{{ dayjs(record.date).format('YYYY-MM-DD') }}</div>
-              <div class="record-actions">
+      </view>
+      <view class="records-section">
+        <view v-if="loading" class="loading-section">
+          <view class="loading-spinner"></view>
+        </view>
+        <view v-else-if="records.length === 0" class="empty-section card">
+          <wd-status-tip image="content" tip="暂无记录" />
+        </view>
+        <view v-else class="records-list">
+          <view v-for="record in records" :key="record.id" class="record-item card">
+            <view class="record-header">
+              <view class="record-date">{{ dayjs(record.date).format('YYYY-MM-DD') }}</view>
+              <view class="record-actions">
                 <wd-button size="small" icon="edit" @click="openModal(record)" />
                 <wd-button
                   size="small"
@@ -268,14 +270,14 @@ onUnmounted(() => {
                   icon="delete"
                   @click="deleteRecord(record.id)"
                 />
-              </div>
-            </div>
-            <div class="record-value">{{ record.uric_acid }} μmol/L</div>
-            <div v-if="record.note" class="record-note">{{ record.note }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
+              </view>
+            </view>
+            <view class="record-value">{{ record.uric_acid }} μmol/L</view>
+            <view v-if="record.note" class="record-note">{{ record.note }}</view>
+          </view>
+        </view>
+      </view>
+    </view>
 
     <wd-popup
       v-model="showAddModal"
@@ -284,7 +286,7 @@ onUnmounted(() => {
       :safe-area-inset-bottom="true"
       @close="closeModal"
     >
-      <div class="modal-content" @click.stop>
+      <view class="modal-content" @click.stop>
         <view class="flex items-center justify-between">
           <view class="modal-title">{{ formData.id ? '编辑记录' : '添加记录' }}</view>
           <wd-button size="small" class="mx-0" :disabled="saving" @click="saveRecord">
@@ -325,9 +327,9 @@ onUnmounted(() => {
             />
           </wd-cell-group>
         </wd-form>
-      </div>
+      </view>
     </wd-popup>
-  </div>
+  </view>
 </template>
 
 <style lang="scss" scoped>
