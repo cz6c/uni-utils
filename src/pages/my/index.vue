@@ -85,14 +85,13 @@ const uChartsInstance = ref(null)
 const cWidth = ref(0)
 const cHeight = ref(0)
 const updateChart = () => {
-  if (records.value.length === 0) return
-
   const sortedRecords = [...records.value].reverse()
   const labels = sortedRecords.map((r) => r.date)
   const data = sortedRecords.map((r) => r.uric_acid)
   console.log('🚀 ~ updateChart ~ labels:', labels, data)
 
   if (!uChartsInstance.value) {
+    if (records.value.length === 0) return
     const ctx = uni.createCanvasContext('column')
     // eslint-disable-next-line new-cap
     uChartsInstance.value = new uCharts({
@@ -237,8 +236,14 @@ onMounted(() => {
 
       <view class="section-title mb-4">尿酸趋势</view>
       <view class="mb-4 card p-0">
-        <canvas canvas-id="column" id="column" class="charts" @tap="tap" />
-        <view v-if="records.length === 0" class="empty-message">
+        <canvas
+          v-if="records.length > 0"
+          canvas-id="column"
+          id="column"
+          class="charts"
+          @tap="tap"
+        />
+        <view v-else class="empty-message">
           <wd-status-tip image="content" tip="暂无数据，请添加记录" />
         </view>
       </view>
