@@ -101,7 +101,7 @@ const updateChart = () => {
       width: cWidth.value,
       height: cHeight.value,
       categories: labels,
-      series: [{ name: '尿酸值 (μmol/L)', data }],
+      series: [{ name: '尿酸值', color: '#4cd964', data }],
       animation: true,
       background: '#FFFFFF',
       padding: [30, 15, 15, 10],
@@ -124,13 +124,16 @@ const updateChart = () => {
         },
         tooltip: {
           showBox: true,
+          showArrow: false,
+          borderRadius: 6,
+          legendShape: 'circle',
         },
       },
     })
   } else {
     uChartsInstance.value.updateData({
       categories: labels,
-      series: [{ name: '尿酸值', data }],
+      series: [{ name: '尿酸值', color: '#18a668', data }],
     })
   }
 }
@@ -138,7 +141,7 @@ function tap(e) {
   uChartsInstance.value.showToolTip(e, {
     formatter: (item, category, index, opts) => {
       console.log('🚀 ~ tap ~ item, category, index, opts:', item, category, index, opts)
-      return dayjs(category).format('YYYY-MM-DD') + '：' + item.data + 'μmol/L'
+      return dayjs(category).format('YYYY-MM-DD') + '\n' + item.data + 'μmol/L'
     },
   })
 }
