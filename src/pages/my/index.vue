@@ -6,35 +6,12 @@
 <script lang="ts" setup>
 import { useToast, useMessage } from 'wot-design-uni'
 import { UricAcidRecord } from '@/types/apis'
-import {
-  Chart,
-  LineController,
-  LineElement,
-  PointElement,
-  LinearScale,
-  CategoryScale,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js'
 import dayjs from 'dayjs'
-
-Chart.register(
-  LineController,
-  LineElement,
-  PointElement,
-  LinearScale,
-  CategoryScale,
-  Title,
-  Tooltip,
-  Legend,
-)
+import uCharts from '@qiun/ucharts'
 
 const message = useMessage()
 const toast = useToast()
 
-const chartCanvas = ref<HTMLCanvasElement | null>(null)
-const chartInstance = ref<Chart | null>(null)
 const statsTips = [
   {
     label: '平均值',
@@ -104,47 +81,66 @@ const loadRecords = () => {
   }
 }
 
+const uChartsInstance = ref(null)
+const cWidth = ref(0)
+const cHeight = ref(0)
 const updateChart = () => {
-  if (!chartCanvas.value || records.value.length === 0) return
+  if (records.value.length === 0) return
 
   const sortedRecords = [...records.value].reverse()
-  const labels = sortedRecords.map((r) => dayjs(r.date).format('YYYY-MM-DD'))
+  const labels = sortedRecords.map((r) => r.date)
   const data = sortedRecords.map((r) => r.uric_acid)
+  console.log('🚀 ~ updateChart ~ labels:', labels, data)
 
-  if (chartInstance.value) {
-    chartInstance.value.destroy()
+  if (!uChartsInstance.value) {
+    const ctx = uni.createCanvasContext('column')
+    // eslint-disable-next-line new-cap
+    uChartsInstance.value = new uCharts({
+      type: 'line',
+      context: ctx,
+      width: cWidth.value,
+      height: cHeight.value,
+      categories: labels,
+      series: [{ name: '尿酸值 (μmol/L)', data }],
+      animation: true,
+      background: '#FFFFFF',
+      padding: [30, 15, 15, 10],
+      legend: {
+        show: false,
+      },
+      xAxis: {
+        disableGrid: true,
+        formatter: (value, index, opts) => {
+          return dayjs(value).format('MM-DD')
+        },
+      },
+      yAxis: {
+        data: [{ min: 0 }],
+        splitNumber: 4,
+      },
+      extra: {
+        line: {
+          type: 'curve',
+        },
+        tooltip: {
+          showBox: true,
+        },
+      },
+    })
+  } else {
+    uChartsInstance.value.updateData({
+      categories: labels,
+      series: [{ name: '尿酸值', data }],
+    })
   }
-
-  // chartInstance.value = new Chart(chartCanvas.value, {
-  //   type: 'line',
-  //   data: {
-  //     labels,
-  //     datasets: [
-  //       {
-  //         label: '尿酸值 (μmol/L)',
-  //         data,
-  //         borderColor: '#10b981',
-  //         backgroundColor: 'rgba(16, 185, 129, 0.1)',
-  //         tension: 0.4,
-  //         fill: true,
-  //       },
-  //     ],
-  //   },
-  //   options: {
-  //     responsive: true,
-  //     maintainAspectRatio: true,
-  //     plugins: {
-  //       legend: {
-  //         display: false,
-  //       },
-  //     },
-  //     scales: {
-  //       y: {
-  //         beginAtZero: false,
-  //       },
-  //     },
-  //   },
-  // })
+}
+function tap(e) {
+  uChartsInstance.value.showToolTip(e, {
+    formatter: (item, category, index, opts) => {
+      console.log('🚀 ~ tap ~ item, category, index, opts:', item, category, index, opts)
+      return dayjs(category).format('YYYY-MM-DD') + '：' + item.data + 'μmol/L'
+    },
+  })
 }
 
 const deleteRecord = async (id: string) => {
@@ -217,13 +213,10 @@ const closeModal = () => {
 }
 
 onMounted(() => {
+  cWidth.value = uni.upx2px(750 - 16 * 4)
+  cHeight.value = uni.upx2px(360)
+  console.log('🚀 ~ cWidth.value:', cWidth.value, cHeight.value)
   loadRecords()
-})
-
-onUnmounted(() => {
-  if (chartInstance.value) {
-    chartInstance.value.destroy()
-  }
 })
 </script>
 
@@ -231,7 +224,7 @@ onUnmounted(() => {
   <view class="page-container">
     <view class="container">
       <view class="section-title mb-4">尿酸水平</view>
-      <view class="stats-section">
+      <view class="stats-section mb-4">
         <view class="stat-card card" v-for="item in statsTips" :key="item.key">
           <view class="stat-label">{{ item.label }}</view>
           <view class="stat-value">{{ stats[item.key] }}</view>
@@ -240,8 +233,8 @@ onUnmounted(() => {
       </view>
 
       <view class="section-title mb-4">尿酸趋势</view>
-      <view class="mb-4 card">
-        <canvas ref="chartCanvas"></canvas>
+      <view class="mb-4 card p-0">
+        <canvas canvas-id="column" id="column" class="charts" @tap="tap" />
         <view v-if="records.length === 0" class="empty-message">
           <wd-status-tip image="content" tip="暂无数据，请添加记录" />
         </view>
@@ -341,7 +334,6 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  margin-bottom: 24px;
 
   .stat-card {
     padding: 16px;
@@ -377,6 +369,11 @@ onUnmounted(() => {
   font-size: 18px;
   font-weight: 600;
   color: #1f2937;
+}
+
+.charts {
+  width: 750 - 16 * 4rpx;
+  height: 360rpx;
 }
 
 .records-section {

@@ -12,29 +12,23 @@ import data from '@/static/data.json'
 import { Food } from '@/types/apis'
 
 const purineOptions = [
-  { value: '', label: '全部' },
+  { value: '全部', label: '全部' },
   ...Object.keys(data.purineLevels).map((k) => ({ value: k, label: data.purineLevels[k].title })),
 ]
 
 const categoryOptions = [
-  { value: '', label: '全部' },
+  { value: '全部', label: '全部' },
   ...data.categories.map((k) => ({ value: k, label: k })),
 ]
 
-const selectedLevel = ref('')
-const selectedCategory = ref('')
+const selectedLevel = ref('全部')
+const selectedCategory = ref('全部')
+const keyWord = ref('')
 const foods = ref<Food[]>([])
+const filteredFoods = ref<Food[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 const selectedFoodDetail = ref<Food | null>(null)
-
-const filteredFoods = computed(() => {
-  return foods.value.filter((food) => {
-    const levelMatch = !selectedLevel.value || food.level === selectedLevel.value
-    const categoryMatch = !selectedCategory.value || food.category === selectedCategory.value
-    return levelMatch && categoryMatch
-  })
-})
 
 const getLevelLabel = (level: string) => {
   const option = purineOptions.find((opt) => opt.value === level)
@@ -58,7 +52,16 @@ const loadFoods = async () => {
   try {
     loading.value = true
     error.value = null
-    foods.value = data.foods || []
+    filteredFoods.value = foods.value.filter((food) => {
+      const levelMatch = selectedLevel.value === '全部' || food.level === selectedLevel.value
+      const categoryMatch =
+        selectedCategory.value === '全部' || food.category === selectedCategory.value
+      const keyWordMatch =
+        !keyWord.value ||
+        (keyWord.value && (food.name.includes(keyWord.value) || keyWord.value.includes(food.name)))
+      console.log('🚀 ~ loadFoods ~ keyWordMatch:', levelMatch, categoryMatch, keyWordMatch)
+      return levelMatch && categoryMatch && keyWordMatch
+    })
   } catch (err: any) {
     error.value = err.message || '加载失败'
     console.error('Error loading foods:', err)
@@ -68,49 +71,37 @@ const loadFoods = async () => {
 }
 
 onMounted(() => {
+  foods.value = data.foods
   loadFoods()
 })
 </script>
 
 <template>
   <view class="page-container">
-    <view class="container">
-      <view class="page-title mb-4">食物数据库</view>
-
-      <view class="filter-section card mb-4">
-        <view class="filter-group">
-          <label class="filter-label">嘌呤含量</label>
-          <view class="filter-options">
-            <wd-radio-group v-model="selectedLevel" shape="button">
-              <wd-radio v-for="level in purineOptions" :key="level.value" :value="level.value">
-                {{ level.label }}
-              </wd-radio>
-            </wd-radio-group>
-          </view>
-        </view>
-
-        <view class="filter-group">
-          <label class="filter-label">食物类别</label>
-          <view class="filter-options">
-            <wd-radio-group v-model="selectedCategory" shape="button">
-              <wd-radio v-for="cat in categoryOptions" :key="cat.value" :value="cat.value">
-                {{ cat.label }}
-              </wd-radio>
-            </wd-radio-group>
-          </view>
-        </view>
+    <view class="filter-section mb-4">
+      <wd-search v-model="keyWord" placeholder-left hide-cancel @search="loadFoods" />
+      <view class="filter-options">
+        <wd-drop-menu>
+          <wd-drop-menu-item v-model="selectedLevel" :options="purineOptions" @change="loadFoods" />
+          <wd-drop-menu-item
+            v-model="selectedCategory"
+            :options="categoryOptions"
+            @change="loadFoods"
+          />
+        </wd-drop-menu>
       </view>
-
+    </view>
+    <view class="container">
       <view v-if="loading" class="loading-section">
         <view class="loading-spinner"></view>
         <view>加载中...</view>
       </view>
 
-      <view v-else-if="error" class="error-section card">
+      <view v-else-if="error" class="error-section">
         <view class="error-message">{{ error }}</view>
       </view>
 
-      <view v-else-if="filteredFoods.length === 0" class="empty-section card">
+      <view v-else-if="filteredFoods.length === 0" class="empty-section">
         <wd-status-tip image="content" tip="暂无数据" />
       </view>
 
@@ -161,32 +152,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-.page-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.filter-group {
-  margin-bottom: 16px;
-}
-
-.filter-group:last-child {
-  margin-bottom: 0;
-}
-
-.filter-label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-:deep() .wd-radio {
-  margin-bottom: 10px;
-}
-
 .loading-section,
 .empty-section {
   padding: 32px 0;
